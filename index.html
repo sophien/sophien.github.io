@@ -1,0 +1,23 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="style.css" />
+        <script src="libs/phaser.min.js"></script>
+        <script src="source/maingamestate.js"></script>
+        <title>Tjejer Kodar | Space Avengers</title>
+        
+    </head>
+    <body>
+        <header>
+            <h1>Space Avengers</h1>
+            <div class="creatorBox">
+            </div>
+        </header>        
+        <div id="gameContainer"></div>
+    </body>
+    
+    <script>
+        var game = new Phaser.Game(400,600, Phaser.AUTO, 'gameContainer');
+        game.state.add("MainGame", mainGameState);
+        game.state.start("MainGame");
+    </script>
+</html>

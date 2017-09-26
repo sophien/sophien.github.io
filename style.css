@@ -1,0 +1,22 @@
+body {
+    background: #2f2f2f;
+    color: #f1f1f1;
+    font-family:"Scout-Light";
+    font-size: 18px;
+    padding: 0 30px;
+}
+
+h1 {
+    font-size: 3em;
+    float: left;
+}
+header {
+    display: inline-block;
+}
+.creatorBox p {
+    font-family: "Scout-ExtraLight";    
+}
+#gameContainer {
+    width: 400px;
+    margin: 0 auto;
+}
