@@ -7,27 +7,36 @@ var mainGameState = { }
 mainGameState.preload = function() {
     console.log("Pre-loading the Game");
     this.game.load.image("space-bg", "assets/images/space-bg.jpg");
-    this.game.load.image("space-ship", "assets/images/player-ship.png");    
+    this.game.load.image("space-ship", "assets/images/player-ship.png");   
+    this.game.load.audio("space-music","assets/music/maingame.mp3");
 }
 
 // Add the create function
 mainGameState.create = function() {
     game.physics.startSystem(Phaser.Physics.ARCADE);
-    
     game.add.sprite(0,-300, 'space-bg');
+     
     
-    // add the space ship to the middle of the screen
+    // Place the space ship in the middle of the screen
     var midScreenX = game.width/2;
     var midScreenY = game.height/2;
     
+    // Read keyboard input
     this.cursors = game.input.keyboard.createCursorKeys();
     
     // First find the middle of the screen
     this.spaceShip = game.add.sprite(midScreenX, midScreenY, 'space-ship');
     // Set the middle of the sprite to anchor the middle of the screen
     this.spaceShip.anchor.set(0.5, 0.5);
+    
     // Enable the player to move the space ship
     game.physics.arcade.enable(this.spaceShip);        
+    
+    // Adding some music    
+    this.music = game.add.audio('space-music');
+    this.music.play();
+    this.music.volume = 0.5;
+    this.music.loopFull();
 }
 
 // Add the update function
