@@ -2,6 +2,9 @@
 const spaceShipSpeed = 250;
 const asteroidSpeedMin = 50;
 const asteroidSpeedMax = 200;
+const bulletSpeed = 150;
+const minTimeBetweenPlayerShots = 0.3;
+const timeBetweenAsteroids = 2.0;
 
 // Create an empty object
 var mainGameState = { }
@@ -13,7 +16,8 @@ mainGameState.preload = function() {
     this.game.load.image("asteroid", "assets/images/asteroid-small-02.png");
     this.game.load.image("asteroid-medium", "assets/images/asteroid-medium-01.png");
     this.game.load.image("asteroid-small", "assets/images/asteroid-small-01.png");
-    this.game.load.audio("space-music","assets/music/maingame.mp3");
+    this.game.load.image("bullet", "assets/images/bullet-fire.png");
+    this.game.load.audio("space-music", "assets/music/maingame.mp3");    
 }
 
 // Add the create function
@@ -42,31 +46,36 @@ mainGameState.create = function() {
     this.music.volume = 0.01;
     this.music.loopFull();
     
-    this.asteroidTimer = 2.0;
+    this.asteroidTimer = timeBetweenAsteroids;
     this.asteroids = game.add.group();
+    
+    // Set bulletTimer (not allowed to shoot bullets more often than every 0.3 seconds)
+    this.bulletTimer = minTimeBetweenPlayerShots;
+    this.bullets = game.add.group();
 }
 
 // Add the update function
 mainGameState.update = function() {
     mainGameState.updatePlayer();
+    mainGameState.updatePlayerBullets();
+    
     this.asteroidTimer -= game.time.physicsElapsed;
     
     if(this.asteroidTimer <= 0.0) {
         this.spawnAsteroids();
-        this.asteroidTimer = 2.0;
-    }
-   
+        this.asteroidTimer = timeBetweenAsteroids;
+    } 
+    
     for(var i = 0; i < this.asteroids.children.length; i++) {
         if(this.asteroids.children[i].position.y > (game.height + 100)) {
             this.asteroids.children[i].destroy();
         }
-    }    
+    }      
 }
 
 mainGameState.updatePlayer = function() {
     var spaceShipHeight = this.spaceShip.height;
     var spaceShipWidth = this.spaceShip.width;
-    
     
     // Move the space ship around the screen
     if (this.cursors.right.isDown) {
@@ -78,7 +87,6 @@ mainGameState.updatePlayer = function() {
     else {        
         this.spaceShip.body.velocity.x = 0;
     }
-    
     
     if (this.cursors.up.isDown) {
         this.spaceShip.body.velocity.y = -spaceShipSpeed;
@@ -111,6 +119,25 @@ mainGameState.updatePlayer = function() {
     
 }
 
+mainGameState.updatePlayerBullets = function() {
+    this.bulletTimer -= game.time.physicsElapsed;
+    // Keep track of fire key (Z)
+    this.fireKey = game.input.keyboard.addKey(Phaser.Keyboard.Z);
+    
+    if(this.bulletTimer <= 0.0) {
+        if(this.fireKey.isDown) {
+            mainGameState.spawnBullets();
+            this.bulletTimer = minTimeBetweenPlayerShots;
+        }
+    }
+    
+    for(var i = 0; i < this.bullets.children.length; i++) {
+        if(this.bullets.children[i].position.y < (0 - 100)) {
+            this.bullets.children[i].destroy();
+        } 
+    }
+}
+
 mainGameState.spawnAsteroids = function() {
     var asteroidSelection = ['asteroid', 'asteroid-medium', 'asteroid-small'];
     var randomAsteroid = Math.floor(Math.random() * 3);    
@@ -129,6 +156,12 @@ mainGameState.spawnAsteroids = function() {
     this.asteroids.add(asteroid);
 }
 
-mainGameStat.spawnBullets = function() {
-    
+mainGameState.spawnBullets = function() {
+    var x = this.spaceShip.position.x;
+    var y = this.spaceShip.position.y;
+    var bullet = game.add.sprite(x, y, 'bullet');
+    bullet.anchor.setTo(0.5, 0.5);
+    game.physics.arcade.enable(bullet);
+    bullet.body.velocity.y = -bulletSpeed;
+    this.bullets.add(bullet);
 }
