@@ -8,6 +8,7 @@ const timeBetweenAsteroids = 2.0;
 const invulnerableTime = 0.5;
 const playerLives = 3;
 
+
 var displayOptions = {
     font: "Arial",
     fill: "#fff",
@@ -17,6 +18,7 @@ var displayOptions = {
 }
 var currentPlayerScore = 0;
 var currentPlayerLives = playerLives;
+var playerScore = 0;
 
 // Create an empty object
 var mainGameState = { }
@@ -31,6 +33,7 @@ mainGameState.preload = function() {
     this.game.load.image("asteroid-medium", "assets/images/asteroid-medium-01.png");
     this.game.load.image("asteroid-small", "assets/images/asteroid-small-01.png");
     this.game.load.image("bullet", "assets/images/bullet-fire.png");
+    
     // music / audio
     this.game.load.audio("space-music", "assets/music/maingame.mp3");
     this.game.load.audio("asteroid-hit1", "assets/audio/asteroid_hit_01.mp3");
@@ -46,9 +49,9 @@ mainGameState.create = function() {
     game.add.sprite(0,-300, 'space-bg');
     
     // Count scores!
-    this.playerScore = 0;
-    game.add.text(game.width - 110, 30, "Score:", displayOptions);
-    this.score = game.add.text((game.width - 50), 30, this.playerScore, displayOptions);
+    playerScore = 0
+    game.add.text(game.width *0.70, 30, "Score:", displayOptions);
+    this.score = game.add.text((game.width - 50), 30, playerScore, displayOptions);
     this.score.fixedToCamera = true;
     
     // Count lives!
@@ -82,6 +85,7 @@ mainGameState.create = function() {
     //adding audio for when bullets are shot
     this.bulletShot = game.add.audio('player-fire');
     
+    // Asteroid timer
     this.asteroidTimer = timeBetweenAsteroids;
     this.asteroids = game.add.group();
     
@@ -117,9 +121,9 @@ mainGameState.update = function() {
     game.physics.arcade.collide(this.asteroids, this.spaceShip, mainGameState.onAsteroidAndPlayerCollision, null, this);
     
     // Update the scores only when the score is changed
-    if(this.playerScore >= currentPlayerScore) {      
+    if(playerScore >= currentPlayerScore) {      
         currentPlayerScore += 1;
-        this.score.setText(this.playerScore);          
+        this.score.setText(playerScore);          
     }
     
     // Update lives only when the lives are changed
@@ -130,13 +134,17 @@ mainGameState.update = function() {
     
     //Let the player be invulnerable for a short time after a hit
     if(this.playerInvulnerable > 0) { //If invulnerable
-        console.log("INVURNABLE!: " + this.playerInvulnerable);
         this.spaceShip.alpha = 0.5; // Fade out space ship when invulnberable
         this.playerInvulnerable -= game.time.physicsElapsed; // count down time as invulnerable
         
         if(this.playerInvulnerable < 0) {
             this.spaceShip.alpha = 1.0;
         }        
+    }
+    
+    //GAME OVER!
+    if(this.playerLives <= 0) {
+        game.state.start("GameOver");
     }
 }
 
@@ -179,7 +187,7 @@ mainGameState.updatePlayer = function() {
     }
     
     // Stop the space ship from moving outside the screen (bottom)
-    if (this.spaceShip.position.y > (game.height - spaceShipHeight/2) &&
+    if (this.spaceShip.position.y > game.height &&
        this.cursors.down.isDown) {
         this.spaceShip.body.velocity.y = 0;
     }
@@ -221,12 +229,17 @@ mainGameState.spawnAsteroids = function() {
     var asteroidSelection = ['asteroid', 'asteroid-medium', 'asteroid-small'];
     var randomAsteroid = Math.floor(Math.random() * 3);    
     var randomSize = Math.random() + 0.5;
-    var randomX = game.rnd.integerInRange(0, game.width);
+    console.log("Game screen width: " + game.width);
+    
+    var asteroidWidth = game.cache.getImage(asteroidSelection[randomAsteroid]).width; // Get asteroidwidth to not allow asteroid outside the screen
+    var randomX = game.rnd.integerInRange(asteroidWidth, game.width - asteroidWidth);
     var asteroidSpeed = Math.floor(Math.random() * (asteroidSpeedMax - asteroidSpeedMin) + asteroidSpeedMin);
     var asteroidRotationSpeed = Math.floor(Math.random() * (asteroidSpeedMax - asteroidSpeedMin) + asteroidSpeedMin);
     
+    
     var asteroid = game.add.sprite(randomX, 0, asteroidSelection[randomAsteroid]);
     
+                
     asteroid.anchor.setTo(0.5, 0.5);
     asteroid.scale.setTo(0.5,0.5);
     game.physics.arcade.enable(asteroid);
@@ -241,7 +254,7 @@ mainGameState.spawnAsteroids = function() {
 */
 mainGameState.spawnBullets = function() {
     var x = this.spaceShip.position.x;
-    var y = this.spaceShip.position.y;
+    var y = this.spaceShip.position.y - this.spaceShip.height;
     var bullet = game.add.sprite(x, y, 'bullet');
     bullet.anchor.setTo(0.5, 0.5);
     game.physics.arcade.enable(bullet);
@@ -255,7 +268,7 @@ mainGameState.spawnBullets = function() {
 *
 */
 mainGameState.onAsteroidAndBulletCollision = function(asteroid, bullet) {
-    this.playerScore += 1;
+    playerScore += 1;
     //adding audio for when asteroids are hit by a bullet
     var asteroidHitAudio = ['asteroid-hit1','asteroid-hit2','asteroid-hit3'];
     var index = game.rnd.integerInRange(0, asteroidHitAudio.length - 1);
@@ -264,6 +277,7 @@ mainGameState.onAsteroidAndBulletCollision = function(asteroid, bullet) {
     asteroid.pendingDestroy = true;
     bullet.pendingDestroy = true;
 }
+
 /***
 * What will hapen when an asteroid hits a space ship
 * Count down lives and destroy asteroid
@@ -287,5 +301,5 @@ mainGameState.onAsteroidAndPlayerCollision = function(asteroid, spaceShip) {
     }
     this.playerLives -= 1; // count down lives     
     this.playerInvulnerable = invulnerableTime;
-    console.log(this.playerInvulnerable);
 }
+

@@ -3,6 +3,7 @@
         <link rel="stylesheet" href="style.css" />
         <script src="libs/phaser.min.js"></script>
         <script src="source/maingamestate.js"></script>
+        <script src="source/gameoverstate.js"></script>
         <title>Tjejer Kodar | Space Avengers</title>
         
     </head>
@@ -16,6 +17,7 @@
     <script>
         var game = new Phaser.Game(400,600, Phaser.AUTO, 'gameContainer');
         game.state.add("MainGame", mainGameState);
-        game.state.start("MainGame");        
+        game.state.add("GameOver", gameOverState);
+        game.state.start("MainGame");
     </script>
 </html>
