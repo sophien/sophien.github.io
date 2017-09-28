@@ -8,16 +8,24 @@ const timeBetweenAsteroids = 2.0;
 
 // Create an empty object
 var mainGameState = { }
+
 // Add the preload function
 mainGameState.preload = function() {
     console.log("Pre-loading the Game");
+    //images
     this.game.load.image("space-bg", "assets/images/space-bg.jpg");
     this.game.load.image("space-ship", "assets/images/player-ship.png");  
     this.game.load.image("asteroid", "assets/images/asteroid-small-02.png");
     this.game.load.image("asteroid-medium", "assets/images/asteroid-medium-01.png");
     this.game.load.image("asteroid-small", "assets/images/asteroid-small-01.png");
     this.game.load.image("bullet", "assets/images/bullet-fire.png");
-    this.game.load.audio("space-music", "assets/music/maingame.mp3");    
+    // music / audio
+    this.game.load.audio("space-music", "assets/music/maingame.mp3");
+    this.game.load.audio("asteroid-hit1", "assets/audio/asteroid_hit_01.mp3");
+    this.game.load.audio("asteroid-hit2", "assets/audio/asteroid_hit_03.mp3");
+    this.game.load.audio("asteroid-hit3", "assets/audio/asteroid_hit_06.mp3");
+    this.game.load.audio("asteroid-death", "assets/audio/asteroid_death_02.mp3");
+    this.game.load.audio("player-fire", "assets/audio/player_fire_01.mp3");
 }
 
 // Add the create function
@@ -43,8 +51,11 @@ mainGameState.create = function() {
     // Adding some music    
     this.music = game.add.audio('space-music');
     this.music.play();
-    this.music.volume = 0.01;
+    this.music.volume = 0.5;
     this.music.loopFull();
+    
+    //adding audio for when bullets are shot
+    this.bulletShot = game.add.audio('player-fire');
     
     this.asteroidTimer = timeBetweenAsteroids;
     this.asteroids = game.add.group();
@@ -70,9 +81,16 @@ mainGameState.update = function() {
         if(this.asteroids.children[i].position.y > (game.height + 100)) {
             this.asteroids.children[i].destroy();
         }
-    }      
+    }    
+    
+    game.physics.arcade.collide(this.asteroids, this.bullets, mainGameState.onAsteroidAndBulletCollision, null, this);
+
 }
 
+/***
+*
+*
+*/
 mainGameState.updatePlayer = function() {
     var spaceShipHeight = this.spaceShip.height;
     var spaceShipWidth = this.spaceShip.width;
@@ -119,6 +137,10 @@ mainGameState.updatePlayer = function() {
     
 }
 
+/***
+*
+*
+*/
 mainGameState.updatePlayerBullets = function() {
     this.bulletTimer -= game.time.physicsElapsed;
     // Keep track of fire key (Z)
@@ -138,6 +160,10 @@ mainGameState.updatePlayerBullets = function() {
     }
 }
 
+/***
+*
+*
+*/
 mainGameState.spawnAsteroids = function() {
     var asteroidSelection = ['asteroid', 'asteroid-medium', 'asteroid-small'];
     var randomAsteroid = Math.floor(Math.random() * 3);    
@@ -156,6 +182,10 @@ mainGameState.spawnAsteroids = function() {
     this.asteroids.add(asteroid);
 }
 
+/***
+*
+*
+*/
 mainGameState.spawnBullets = function() {
     var x = this.spaceShip.position.x;
     var y = this.spaceShip.position.y;
@@ -163,5 +193,22 @@ mainGameState.spawnBullets = function() {
     bullet.anchor.setTo(0.5, 0.5);
     game.physics.arcade.enable(bullet);
     bullet.body.velocity.y = -bulletSpeed;
+    this.bulletShot.play();
     this.bullets.add(bullet);
+}
+
+/***
+* What will happen when a bullet hits an asteroid
+*
+*/
+mainGameState.onAsteroidAndBulletCollision = function(asteroid, bullet) {
+    
+    //adding audio for when asteroids are hit by a bullet
+    var asteroidHitAudio = ['asteroid-hit1','asteroid-hit2','asteroid-hit3'];
+    var index = game.rnd.integerInRange(0, asteroidHitAudio.length - 1);
+    this.asteroidHit = game.add.audio(asteroidHitAudio[index]);
+    this.asteroidHit.play();
+    
+    asteroid.pendingDestroy = true;
+    bullet.pendingDestroy = true;
 }
