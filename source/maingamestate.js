@@ -5,6 +5,14 @@ const asteroidSpeedMax = 200;
 const bulletSpeed = 150;
 const minTimeBetweenPlayerShots = 0.3;
 const timeBetweenAsteroids = 2.0;
+var displayOptions = {
+    font: "Arial",
+    fill: "#fff",
+    fontWeight: "normal",
+    fontSize: "18px",
+    align: "center"
+}
+var currentPlayerScore = 0;
 
 // Create an empty object
 var mainGameState = { }
@@ -33,6 +41,19 @@ mainGameState.create = function() {
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.add.sprite(0,-300, 'space-bg');
     
+    // Count scores!
+    this.playerScore = 0;
+    game.add.text(game.width - 110, 30, "Score:", displayOptions);
+    this.score = game.add.text((game.width - 50), 30, this.playerScore, displayOptions);
+    this.score.fixedToCamera = true;
+    
+    // Count lives!
+    this.playerLives = 3;
+    game.add.text(30, 30, "LIVES ", displayOptions);
+    this.playerLife = game.add.text(30, 50, this.playerLives, displayOptions);
+    this.playerLife.fixedToCamera = true;
+    
+    
     // Place the space ship in the middle of the screen
     var midScreenX = game.width/2;
     var midScreenY = game.height/2;
@@ -51,7 +72,7 @@ mainGameState.create = function() {
     // Adding some music    
     this.music = game.add.audio('space-music');
     this.music.play();
-    this.music.volume = 0.5;
+    this.music.volume = 0.05;
     this.music.loopFull();
     
     //adding audio for when bullets are shot
@@ -83,8 +104,14 @@ mainGameState.update = function() {
         }
     }    
     
+    // Collision detection
     game.physics.arcade.collide(this.asteroids, this.bullets, mainGameState.onAsteroidAndBulletCollision, null, this);
-
+    
+    // Update the scores only when the score is changed
+    if(this.playerScore >= currentPlayerScore) {      
+        currentPlayerScore += 1;
+        this.score.setText(this.playerScore);          
+    }
 }
 
 /***
@@ -202,13 +229,13 @@ mainGameState.spawnBullets = function() {
 *
 */
 mainGameState.onAsteroidAndBulletCollision = function(asteroid, bullet) {
-    
+    console.log("HIT!");
+    this.playerScore += 1;
     //adding audio for when asteroids are hit by a bullet
     var asteroidHitAudio = ['asteroid-hit1','asteroid-hit2','asteroid-hit3'];
     var index = game.rnd.integerInRange(0, asteroidHitAudio.length - 1);
     this.asteroidHit = game.add.audio(asteroidHitAudio[index]);
     this.asteroidHit.play();
-    
     asteroid.pendingDestroy = true;
     bullet.pendingDestroy = true;
 }
