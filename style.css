@@ -1,7 +1,7 @@
 body {
     background: url("assets/images/space-bg.jpg");
     color: #f1f1f1;
-    font-family:"Roboto-Light";
+    font-family:"Roboto-Light", Helvetica, Arial;
     font-size: 18px;
     padding: 0 30px;
 }
