@@ -86,7 +86,7 @@ mainGameState.create = function() {
     // Adding some music    
     this.music = game.add.audio('space-music');
     this.music.play();
-    this.music.volume = 0.05;
+    this.music.volume = 0.5;
     this.music.loopFull();
     
     //adding audio for when bullets are shot
