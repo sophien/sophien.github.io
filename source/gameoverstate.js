@@ -30,7 +30,7 @@ gameOverState.create = function() {
     //SCORE
     var scoreTitle = game.add.text(game.width * 0.5, game.height * 0.6, "YOUR SCORE", textStyleScore);
     scoreTitle.anchor.setTo(0.5, 0.5);
-    var score = game.add.text(game.width * 0.5, game.height * 0.65, playerScore, textStyleScore);
+    var score = game.add.text(game.width * 0.5, game.height * 0.65, SKPlayerScore, textStyleScore);
     score.anchor.setTo(0.5, 0.5);
     
     this.spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);

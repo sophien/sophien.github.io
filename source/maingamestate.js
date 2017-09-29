@@ -9,8 +9,9 @@ const invulnerableTime = 0.5;
 const playerLives = 3;
 
 var SKCurrentPlayerScore = 0;
-var SKCurrentPlayerLives = playerLives;
+var SKCurrentPlayerLives = 0;
 var SKPlayerScore = 0;
+var SKEmitter;
 
 // Create an empty object
 var mainGameState = { }
@@ -23,8 +24,9 @@ mainGameState.preload = function() {
     this.game.load.image("space-ship", "assets/images/space-ship.png");  
     this.game.load.image("asteroid", "assets/images/rock.png");
     this.game.load.image("asteroid-medium", "assets/images/rock-2.png");
-    this.game.load.image("asteroid-small", "assets/images/rock-3.png");
-    this.game.load.image("bullet", "assets/images/bullet-fire.png");
+    this.game.load.image("asteroid-huge", "assets/images/rock-3.png");
+    this.game.load.image("bullet", "assets/images/bullet.png");
+    this.game.load.image("particle", "assets/images/particle.png");
     
     // music / audio
     this.game.load.audio("space-music", "assets/music/maingame.mp3");
@@ -47,18 +49,19 @@ mainGameState.create = function() {
     
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.add.sprite(0,-300, 'space-bg');
-    
+
     // Count scores!
-    SKPlayerScore = 0
+    SKPlayerScore = 0;
     var scoreLabel = game.add.text(game.width * 0.9, game.height * 0.05, "SCORE", displayOptions);
     scoreLabel.anchor.setTo(0.5, 0.5);
     this.score = game.add.text(game.width * 0.9, game.height * 0.1, SKPlayerScore, displayOptions);
     this.score.anchor.setTo(0.5, 0.5);
     this.score.fixedToCamera = true;
     
-    
-    // Count lives!
+    // Set initial player lives!
     this.playerLives = playerLives;
+    SKCurrentPlayerLives = playerLives;
+    //Text to display player lives
     var lives = game.add.text(game.width * 0.1, game.height * 0.05, "LIVES", displayOptions);
     lives.anchor.setTo(0.5, 0.5);
     this.playerLife = game.add.text(game.width * 0.1, game.height * 0.1, this.playerLives, displayOptions);
@@ -98,6 +101,11 @@ mainGameState.create = function() {
     this.bulletTimer = minTimeBetweenPlayerShots;
     this.bullets = game.add.group();
     
+    // Particle effect
+    SKEmitter = game.add.emitter(0,0,100);
+    SKEmitter.makeParticles('particle');
+    SKEmitter.gravity = 200;
+    
     // Set timer for player when hit by an asteroid (invulnerable time)
     this.playerInvulnerable = 0.0;
 }
@@ -121,6 +129,7 @@ mainGameState.update = function() {
     
     // Collision detection
     // Asteroids and bullets
+    
     game.physics.arcade.collide(this.asteroids, this.bullets, mainGameState.onAsteroidAndBulletCollision, null, this);
     // Asteroids and space ship
     game.physics.arcade.collide(this.asteroids, this.spaceShip, mainGameState.onAsteroidAndPlayerCollision, null, this);
@@ -130,6 +139,7 @@ mainGameState.update = function() {
         SKCurrentPlayerScore += 1;
         this.score.setText(SKPlayerScore);          
     }
+    
     
     // Update lives only when the lives are changed
     if(this.playerLives <= SKCurrentPlayerLives) {
@@ -231,7 +241,7 @@ mainGameState.updatePlayerBullets = function() {
 *
 */
 mainGameState.spawnAsteroids = function() {
-    var asteroidSelection = ['asteroid', 'asteroid-medium', 'asteroid-small'];
+    var asteroidSelection = ['asteroid', 'asteroid-medium', 'asteroid-huge'];
     var randomAsteroid = Math.floor(Math.random() * 3);    
     var randomSize = Math.random() + 0.5;    
     var asteroidWidth = game.cache.getImage(asteroidSelection[randomAsteroid]).width; // Get asteroidwidth to not allow asteroid outside the screen
@@ -240,9 +250,11 @@ mainGameState.spawnAsteroids = function() {
     var asteroidRotationSpeed = Math.floor(Math.random() * (asteroidSpeedMax - asteroidSpeedMin) + asteroidSpeedMin);
     var asteroid = game.add.sprite(randomX, 0, asteroidSelection[randomAsteroid]);
     
+    asteroid.health = 100 * randomAsteroid;    
     asteroid.anchor.setTo(0.5, 0.5);
     asteroid.scale.setTo(0.5,0.5);
     game.physics.arcade.enable(asteroid);
+    asteroid.body.immovable = true;
     asteroid.body.velocity.y = asteroidSpeed;
     asteroid.body.angularVelocity = asteroidRotationSpeed;
     this.asteroids.add(asteroid);
@@ -268,14 +280,24 @@ mainGameState.spawnBullets = function() {
 *
 */
 mainGameState.onAsteroidAndBulletCollision = function(asteroid, bullet) {
-    SKPlayerScore += 1;
-    //adding audio for when asteroids are hit by a bullet
-    var asteroidHitAudio = ['asteroid-hit1','asteroid-hit2','asteroid-hit3'];
-    var index = game.rnd.integerInRange(0, asteroidHitAudio.length - 1);
-    this.asteroidHit = game.add.audio(asteroidHitAudio[index]);
-    this.asteroidHit.play();
-    asteroid.pendingDestroy = true;
-    bullet.pendingDestroy = true;
+    
+    if(asteroid.key.includes('asteroid')) {        
+        if(asteroid.health <= 0) {
+            SKPlayerScore += 1;
+            mainGameState.particelBurst(10, asteroid.position.x, asteroid.position.y);
+            //adding audio for when asteroids are hit by a bullet
+            var asteroidHitAudio = ['asteroid-hit1','asteroid-hit2','asteroid-hit3'];
+            var index = game.rnd.integerInRange(0, asteroidHitAudio.length - 1);
+            this.asteroidHit = game.add.audio(asteroidHitAudio[index]);
+            this.asteroidHit.play();
+            asteroid.pendingDestroy = true;            
+        }
+        else {
+            mainGameState.particelBurst(3, asteroid.position.x, asteroid.position.y);
+            asteroid.health -= 100;
+        }
+    }
+    bullet.pendingDestroy = true;    
 }
 
 /***
@@ -283,13 +305,14 @@ mainGameState.onAsteroidAndBulletCollision = function(asteroid, bullet) {
 * Count down lives and destroy asteroid
 */
 mainGameState.onAsteroidAndPlayerCollision = function(asteroid, spaceShip) {
+    
     if(this.playerInvulnerable > 0) {
         if(asteroid.key.includes('asteroid')) {
-        asteroid.pendingDestroy = true;    
-    }
-    else {
-        spaceShip.pendingDestroy = true;
-    }
+            asteroid.pendingDestroy = true;    
+        }   
+        else {
+            spaceShip.pendingDestroy = true;
+        }
         return;
     }
     
@@ -299,7 +322,13 @@ mainGameState.onAsteroidAndPlayerCollision = function(asteroid, spaceShip) {
     else {
         spaceShip.pendingDestroy = true;
     }
-    this.playerLives -= 1; // count down lives     
+    this.playerLives -= 1; // count down lives
     this.playerInvulnerable = invulnerableTime;
 }
+
+mainGameState.particelBurst = function(burstEffect, x, y) {
+    SKEmitter.x = x;
+    SKEmitter.y = y;
+    SKEmitter.start(true, 2000, null, burstEffect);
+} 
 
