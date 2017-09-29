@@ -8,17 +8,9 @@ const timeBetweenAsteroids = 2.0;
 const invulnerableTime = 0.5;
 const playerLives = 3;
 
-
-var displayOptions = {
-    font: "Arial",
-    fill: "#fff",
-    fontWeight: "normal",
-    fontSize: "18px",
-    align: "center"
-}
-var currentPlayerScore = 0;
-var currentPlayerLives = playerLives;
-var playerScore = 0;
+var SKCurrentPlayerScore = 0;
+var SKCurrentPlayerLives = playerLives;
+var SKPlayerScore = 0;
 
 // Create an empty object
 var mainGameState = { }
@@ -28,10 +20,10 @@ mainGameState.preload = function() {
     console.log("Pre-loading the Game");
     //images
     this.game.load.image("space-bg", "assets/images/space-bg.jpg");
-    this.game.load.image("space-ship", "assets/images/player-ship.png");  
-    this.game.load.image("asteroid", "assets/images/asteroid-small-02.png");
-    this.game.load.image("asteroid-medium", "assets/images/asteroid-medium-01.png");
-    this.game.load.image("asteroid-small", "assets/images/asteroid-small-01.png");
+    this.game.load.image("space-ship", "assets/images/space-ship.png");  
+    this.game.load.image("asteroid", "assets/images/rock.png");
+    this.game.load.image("asteroid-medium", "assets/images/rock-2.png");
+    this.game.load.image("asteroid-small", "assets/images/rock-3.png");
     this.game.load.image("bullet", "assets/images/bullet-fire.png");
     
     // music / audio
@@ -45,19 +37,32 @@ mainGameState.preload = function() {
 
 // Add the create function
 mainGameState.create = function() {
+    var displayOptions = {
+        font: "Roboto-Light",
+        fill: "#fff",
+        fontWeight: "normal",
+        fontSize: "18px",
+        boundsAlignV: "middle"
+    }    
+    
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.add.sprite(0,-300, 'space-bg');
     
     // Count scores!
-    playerScore = 0
-    game.add.text(game.width *0.70, 30, "Score:", displayOptions);
-    this.score = game.add.text((game.width - 50), 30, playerScore, displayOptions);
+    SKPlayerScore = 0
+    var scoreLabel = game.add.text(game.width * 0.9, game.height * 0.05, "SCORE", displayOptions);
+    scoreLabel.anchor.setTo(0.5, 0.5);
+    this.score = game.add.text(game.width * 0.9, game.height * 0.1, SKPlayerScore, displayOptions);
+    this.score.anchor.setTo(0.5, 0.5);
     this.score.fixedToCamera = true;
+    
     
     // Count lives!
     this.playerLives = playerLives;
-    game.add.text(30, 30, "LIVES ", displayOptions);
-    this.playerLife = game.add.text(30, 50, this.playerLives, displayOptions);
+    var lives = game.add.text(game.width * 0.1, game.height * 0.05, "LIVES", displayOptions);
+    lives.anchor.setTo(0.5, 0.5);
+    this.playerLife = game.add.text(game.width * 0.1, game.height * 0.1, this.playerLives, displayOptions);
+    this.playerLife.anchor.setTo(0.5, 0.5);
     this.playerLife.fixedToCamera = true;
     
     
@@ -121,14 +126,14 @@ mainGameState.update = function() {
     game.physics.arcade.collide(this.asteroids, this.spaceShip, mainGameState.onAsteroidAndPlayerCollision, null, this);
     
     // Update the scores only when the score is changed
-    if(playerScore >= currentPlayerScore) {      
-        currentPlayerScore += 1;
-        this.score.setText(playerScore);          
+    if(SKPlayerScore >= SKCurrentPlayerScore) {      
+        SKCurrentPlayerScore += 1;
+        this.score.setText(SKPlayerScore);          
     }
     
     // Update lives only when the lives are changed
-    if(this.playerLives <= currentPlayerLives) {
-        currentPlayerLives -= 1;
+    if(this.playerLives <= SKCurrentPlayerLives) {
+        SKCurrentPlayerLives -= 1;
         this.playerLife.setText(this.playerLives);
     }
     
@@ -228,18 +233,13 @@ mainGameState.updatePlayerBullets = function() {
 mainGameState.spawnAsteroids = function() {
     var asteroidSelection = ['asteroid', 'asteroid-medium', 'asteroid-small'];
     var randomAsteroid = Math.floor(Math.random() * 3);    
-    var randomSize = Math.random() + 0.5;
-    console.log("Game screen width: " + game.width);
-    
+    var randomSize = Math.random() + 0.5;    
     var asteroidWidth = game.cache.getImage(asteroidSelection[randomAsteroid]).width; // Get asteroidwidth to not allow asteroid outside the screen
     var randomX = game.rnd.integerInRange(asteroidWidth, game.width - asteroidWidth);
     var asteroidSpeed = Math.floor(Math.random() * (asteroidSpeedMax - asteroidSpeedMin) + asteroidSpeedMin);
     var asteroidRotationSpeed = Math.floor(Math.random() * (asteroidSpeedMax - asteroidSpeedMin) + asteroidSpeedMin);
-    
-    
     var asteroid = game.add.sprite(randomX, 0, asteroidSelection[randomAsteroid]);
     
-                
     asteroid.anchor.setTo(0.5, 0.5);
     asteroid.scale.setTo(0.5,0.5);
     game.physics.arcade.enable(asteroid);
@@ -268,7 +268,7 @@ mainGameState.spawnBullets = function() {
 *
 */
 mainGameState.onAsteroidAndBulletCollision = function(asteroid, bullet) {
-    playerScore += 1;
+    SKPlayerScore += 1;
     //adding audio for when asteroids are hit by a bullet
     var asteroidHitAudio = ['asteroid-hit1','asteroid-hit2','asteroid-hit3'];
     var index = game.rnd.integerInRange(0, asteroidHitAudio.length - 1);

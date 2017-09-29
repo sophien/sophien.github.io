@@ -1,22 +1,23 @@
 body {
-    background: #2f2f2f;
+    background: url("assets/images/space-bg.jpg");
     color: #f1f1f1;
-    font-family:"Scout-Light";
+    font-family:"Roboto-Light";
     font-size: 18px;
     padding: 0 30px;
 }
 
 h1 {
-    font-size: 3em;
+    font-size: 2em;
     float: left;
+    text-transform: uppercase;
+    font-weight: normal;
 }
 header {
     display: inline-block;
 }
-.creatorBox p {
-    font-family: "Scout-ExtraLight";    
-}
+
 #gameContainer {
     width: 400px;
     margin: 0 auto;
+    border: 1px solid #16272b;
 }
