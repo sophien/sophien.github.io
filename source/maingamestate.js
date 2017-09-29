@@ -68,7 +68,6 @@ mainGameState.create = function() {
     this.playerLife.anchor.setTo(0.5, 0.5);
     this.playerLife.fixedToCamera = true;
     
-    
     // Place the space ship in the middle of the screen
     var midScreenX = game.width/2;
     var midScreenY = game.height/2;
@@ -128,8 +127,7 @@ mainGameState.update = function() {
     }    
     
     // Collision detection
-    // Asteroids and bullets
-    
+    // Asteroids and bullets    
     game.physics.arcade.collide(this.asteroids, this.bullets, mainGameState.onAsteroidAndBulletCollision, null, this);
     // Asteroids and space ship
     game.physics.arcade.collide(this.asteroids, this.spaceShip, mainGameState.onAsteroidAndPlayerCollision, null, this);
@@ -139,7 +137,6 @@ mainGameState.update = function() {
         SKCurrentPlayerScore += 1;
         this.score.setText(SKPlayerScore);          
     }
-    
     
     // Update lives only when the lives are changed
     if(this.playerLives <= SKCurrentPlayerLives) {
@@ -301,7 +298,7 @@ mainGameState.onAsteroidAndBulletCollision = function(asteroid, bullet) {
 }
 
 /***
-* What will hapen when an asteroid hits a space ship
+* What will happen when an asteroid hits a space ship
 * Count down lives and destroy asteroid
 */
 mainGameState.onAsteroidAndPlayerCollision = function(asteroid, spaceShip) {
