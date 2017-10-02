@@ -52,6 +52,7 @@ mainGameState.create = function() {
 
     // Count scores!
     SKPlayerScore = 0;
+    SKCurrentPlayerScore = 0;
     var scoreLabel = game.add.text(game.width * 0.9, game.height * 0.05, "SCORE", displayOptions);
     scoreLabel.anchor.setTo(0.5, 0.5);
     this.score = game.add.text(game.width * 0.9, game.height * 0.1, SKPlayerScore, displayOptions);
@@ -133,7 +134,7 @@ mainGameState.update = function() {
     game.physics.arcade.collide(this.asteroids, this.spaceShip, mainGameState.onAsteroidAndPlayerCollision, null, this);
     
     // Update the scores only when the score is changed
-    if(SKPlayerScore >= SKCurrentPlayerScore) {      
+    if(SKPlayerScore >= SKCurrentPlayerScore) {
         SKCurrentPlayerScore += 1;
         this.score.setText(SKPlayerScore);          
     }
@@ -278,7 +279,7 @@ mainGameState.spawnBullets = function() {
 */
 mainGameState.onAsteroidAndBulletCollision = function(asteroid, bullet) {
     
-    if(asteroid.key.includes('asteroid')) {        
+    if(asteroid.key.includes('asteroid')) {
         if(asteroid.health <= 0) {
             SKPlayerScore += 1;
             mainGameState.particelBurst(10, asteroid.position.x, asteroid.position.y);
